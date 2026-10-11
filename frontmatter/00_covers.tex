@@ -1,0 +1,93 @@
+% ====================================================
+% 1. TRANG BÌA 1 (BÌA NGOÀI)
+% ====================================================
+\begin{titlepage}
+    % Khung viền đôi chuẩn (Trái cách mép giấy 2.0cm, Phải/Trên/Dưới 1.5cm)
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[line width=1.5pt] ($(current page.north west) + (2.0cm,-1.5cm)$) rectangle ($(current page.south east) + (-1.5cm,1.5cm)$);
+        \draw[line width=0.5pt] ($(current page.north west) + (2.1cm,-1.6cm)$) rectangle ($(current page.south east) + (-1.4cm,1.4cm)$);
+    \end{tikzpicture}
+    
+    \centering
+    {\bfseries\large BỘ GIÁO DỤC VÀ ĐÀO TẠO\par}
+    \vspace{0.15cm}
+    {\bfseries\large ĐẠI HỌC CẦN THƠ\par}
+    \vspace{0.15cm}
+    {\bfseries\large TRƯỜNG CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG\par}
+    \vspace{0.8cm}
+    
+    % Logo Đại học Cần Thơ từ thư mục figures/
+    \includegraphics[width=2.8cm]{logo_CTU}\par
+    \vspace{1.0cm}
+    
+    {\bfseries\Large BÁO CÁO TỔNG KẾT\par}
+    \vspace{0.25cm}
+    {\bfseries\large ĐỀ TÀI NGHIÊN CỨU KHOA HỌC CỦA SINH VIÊN\par}
+    \vspace{0.9cm}
+    
+    % Tên đề tài từ Thuyết minh
+    {\bfseries\Large HỆ THỐNG NHẬN DIỆN THỰC PHẨM VÀ XÁC ĐỊNH\\GIÁ TRỊ DINH DƯỠNG ỨNG DỤNG DEEP LEARNING\par}
+    \vspace{0.9cm}
+    
+    {\bfseries\large MÃ SỐ ĐỀ TÀI: TSV2026-127\par}
+    
+    \vfill
+    
+    % Phần chân trang bìa 1
+    {\bfseries\large CHỦ NHIỆM ĐỀ TÀI: NGUYỄN HỮU THANH HÒA\par}
+    \vspace{1.2cm}
+    
+    {\large Cần Thơ, 2026\par}
+    \vspace{0.3cm}
+\end{titlepage}
+
+% ====================================================
+% 2. TRANG BÌA 2 (BÌA TRONG)
+% ====================================================
+\begin{titlepage}
+    % Khung viền đôi trang bìa trong
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[line width=1.5pt] ($(current page.north west) + (2.0cm,-1.5cm)$) rectangle ($(current page.south east) + (-1.5cm,1.5cm)$);
+        \draw[line width=0.5pt] ($(current page.north west) + (2.1cm,-1.6cm)$) rectangle ($(current page.south east) + (-1.4cm,1.4cm)$);
+    \end{tikzpicture}
+    
+    \centering
+    {\bfseries\large BỘ GIÁO DỤC VÀ ĐÀO TẠO\par}
+    \vspace{0.15cm}
+    {\bfseries\large ĐẠI HỌC CẦN THƠ\par}
+    \vspace{0.15cm}
+    {\bfseries\large TRƯỜNG CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG\par}
+    \vspace{0.8cm}
+    
+    \includegraphics[width=2.8cm]{logo_CTU}\par
+    \vspace{1.0cm}
+    
+    {\bfseries\Large BÁO CÁO TỔNG KẾT\par}
+    \vspace{0.25cm}
+    {\bfseries\large ĐỀ TÀI NGHIÊN CỨU KHOA HỌC CỦA SINH VIÊN\par}
+    \vspace{0.9cm}
+    
+    {\bfseries\Large HỆ THỐNG NHẬN DIỆN THỰC PHẨM VÀ XÁC ĐỊNH\\GIÁ TRỊ DINH DƯỠNG ỨNG DỤNG DEEP LEARNING\par}
+    \vspace{0.9cm}
+    
+    {\bfseries\large MÃ SỐ ĐỀ TÀI: TSV2026-127\par}
+    
+    \vfill
+    
+    % Khối thông tin chi tiết: Thụt lề 1.0cm cách xa khung viền
+    \begin{flushleft}
+        \fontsize{12pt}{16pt}\selectfont
+        \hspace*{1.0cm}%
+        \begin{tabular}{@{}p{9.2cm} p{5.0cm}@{}}
+            Sinh viên chủ nhiệm đề tài: \textbf{Nguyễn Hữu Thanh Hòa} & Nam, Nữ: \textbf{Nam} \\[0.2cm]
+            Dân tộc: \textbf{Kinh} & \\[0.2cm]
+            Lớp, Khoa: \textbf{DI23Z6A1} & Năm, thứ: \textbf{4/4.5 năm} \\[0.2cm]
+            Ngành học: \textbf{Khoa học Máy tính} & \\[0.5cm]
+            \multicolumn{2}{@{}l@{}}{Người hướng dẫn: \textbf{PGS. TS. Nguyễn Thái Nghe}}
+        \end{tabular}
+    \end{flushleft}
+    
+    \vspace{1.2cm}
+    {\large Cần Thơ, 2026\par}
+    \vspace{0.3cm}
+\end{titlepage}
