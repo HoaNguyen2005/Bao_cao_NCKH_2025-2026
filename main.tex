@@ -1,0 +1,89 @@
+\documentclass[12pt,a4paper]{report}
+
+% ================= KHAI BÁO CẤU HÌNH & GÓI =================
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage[vietnamese]{babel}
+\usepackage[left=3cm, right=2cm, top=2cm, bottom=2cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.3}
+\usepackage{enumitem}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}} % Tự động trỏ vào thư mục figures khi chèn ảnh
+\usepackage{tabularx, booktabs, amsmath, amssymb, tikz}
+\usetikzlibrary{calc}
+\usepackage{indentfirst}
+\setlength{\parindent}{1cm}
+
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\normalfont\Large\bfseries\centering}{CHƯƠNG \thechapter:\quad}{0pt}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-10pt}{20pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.8em}{}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\usepackage[unicode, hidelinks]{hyperref}
+\renewcommand{\contentsname}{MỤC LỤC}
+\renewcommand{\listtablename}{DANH MỤC BẢNG}
+\renewcommand{\listfigurename}{DANH MỤC HÌNH ẢNH}
+
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+% ================= BẮT ĐẦU TÀI LIỆU =================
+\begin{document}
+
+% 1. CÁC TRANG BÌA (Không đánh số trang)
+\input{frontmatter/00_covers.tex}
+
+% 2. PHẦN ĐẦU (Đánh số La Mã: i, ii, iii...)
+\cleardoublepage
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\input{frontmatter/01_members.tex}
+\input{frontmatter/02_acknowledgements.tex}
+
+% Mục lục & Các danh mục tự động
+\newpage
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents
+
+\newpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
+
+\newpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+% Các danh mục và thông tin hành chính
+\input{frontmatter/03_abbreviations.tex}
+\input{frontmatter/04_research_info_vi.tex}
+\input{frontmatter/05_research_info_en.tex}
+\input{frontmatter/06_student_info.tex}
+
+% 3. NỘI DUNG CHÍNH (Đánh số Ả Rập: 1, 2, 3...)
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{chapters/01_introduction.tex}
+\input{chapters/02_theory.tex}
+\input{chapters/03_system_design.tex}
+\input{chapters/04_methodology.tex}
+\input{chapters/05_results.tex}
+\input{chapters/06_conclusion.tex}
+
+% 4. TÀI LIỆU THAM KHẢO & PHỤ LỤC
+\cleardoublepage
+\printbibliography[heading=bibintoc, title={TÀI LIỆU THAM KHẢO}]
+
+\input{backmatter/appendix.tex}
+
+\end{document}
