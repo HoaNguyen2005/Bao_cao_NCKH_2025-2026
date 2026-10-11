@@ -1,7 +1,136 @@
 \chapter{PHƯƠNG PHÁP THỰC HIỆN}
+
+Chương này trình bày chi tiết quy trình nghiên cứu và các giải pháp kỹ thuật được triển khai trong hệ thống NutriCare. Trọng tâm của phương pháp bao gồm: quy trình thu thập, tinh lọc và chuẩn hóa tập dữ liệu đa nguồn; phương pháp huấn luyện mô hình học sâu nhận diện thực phẩm kết hợp mô hình YOLO phát hiện tem nhãn; kỹ thuật OCR trích xuất khối lượng và đơn giá; kiến trúc dịch vụ Backend API tích hợp hệ thống luật dinh dưỡng y khoa; và cuối cùng là quy trình phát triển, đóng gói ứng dụng di động phục vụ người dùng cuối.
+
 \section{Thu thập và tiền xử lý dữ liệu}
+
+Dữ liệu hình ảnh giữ vai trò then chốt quyết định chất lượng và độ hội tụ của các mô hình học sâu trong bài toán thị giác máy tính. Đối với bài toán đặc thù của hệ thống NutriCare, dữ liệu đầu vào bao gồm hai luồng thông tin song song: hình ảnh phân loại các loại thực phẩm tươi sống, rau củ quả phổ biến tại Việt Nam và hình ảnh các khay thực phẩm đóng gói có dán nhãn giá tại siêu thị để phục vụ nhận diện ký tự quang học (OCR).
+
 \subsection{Tập dữ liệu hình ảnh thực phẩm Việt Nam}
+
+Nhằm đáp ứng yêu cầu nhận diện chính xác các nguyên liệu trong bữa ăn gia đình và thực đơn dinh dưỡng cho bệnh nhân béo phì, cao huyết áp, nhóm nghiên cứu đã xây dựng tập dữ liệu thực phẩm chuẩn hóa mang tên \textbf{Dataset\_Master} gồm \textbf{47 lớp đối tượng} đặc trưng với tổng số \textbf{16.121 hình ảnh}.
+
+\subsubsection{Nguồn gốc và phương thức thu thập}
+Quá trình xây dựng tập dữ liệu được tiến hành qua hai giai đoạn kế tiếp nhau:
+\begin{enumerate}[leftmargin=0.8cm, itemsep=2pt, topsep=2pt]
+    \item \textbf{Thu thập dữ liệu gốc đa nguồn:} Nhóm nghiên cứu kết hợp giữa ghi hình thực tế (\textit{in-the-wild}) bằng điện thoại thông minh tại các siêu thị lớn ở Thành phố Cần Thơ (Co.opmart, WinMart, Bách Hóa Xanh, Go!) và khai thác các bộ dữ liệu mở uy tín trên Kaggle, Roboflow Universe. Dữ liệu gốc thu được gồm $7.459$ hình ảnh, phản ánh chân thực các điều kiện bất lợi như: ánh sáng nhân tạo, góc nghiêng $45^\circ\text{--}90^\circ$, bề mặt khay xốp bọc màng co PE gây vệt phản quang chói sáng, hoặc hơi nước ngưng tụ.
+    \item \textbf{Cân bằng mẫu bằng kỹ thuật tăng cường dữ liệu (Oversampling via Augmentation):} Trong tập dữ liệu gốc ban đầu, hiện tượng mất cân bằng số lượng giữa các lớp là không thể tránh khỏi (dao động từ $100$ ảnh đối với lớp \textit{ếch} cho đến $343$ ảnh đối với lớp \textit{cải xanh}). Nếu huấn luyện trực tiếp, mô hình học sâu sẽ có xu hướng thiên lệch (\textit{bias}) về các lớp đa số và giảm độ nhạy (\textit{recall}) trên các lớp thiểu số. Để khắc phục triệt để, nhóm nghiên cứu lấy ngưỡng cực đại của lớp chiếm đa số ($N_{\max} = 343$ ảnh) làm mốc chuẩn, sau đó áp dụng chiến lược tăng cường dữ liệu định hướng (\textit{targeted augmentation} gồm xoay ngẫu nhiên, lật đối xứng, biến đổi độ sáng, độ tương phản và thêm nhiễu quang học) để nhân bản mẫu cho các lớp thiểu số. Kết quả tạo nên tập dữ liệu tổng thể \textbf{Dataset\_Master} hoàn toàn cân bằng với đúng \textbf{343 ảnh cho mỗi lớp} trong tổng số 47 lớp.
+\end{enumerate}
+
+\subsubsection{Phân loại danh mục theo nhóm dinh dưỡng}
+Để phục vụ việc liên kết với cơ sở dữ liệu dinh dưỡng y khoa và tính toán khẩu phần theo các chế độ ăn chuyên biệt (như chế độ ăn giảm natri DASH cho người cao huyết áp hoặc kiểm soát năng lượng cho người béo phì), 47 lớp thực phẩm được cấu trúc thành 4 nhóm dinh dưỡng chính:
+\begin{itemize}[leftmargin=0.8cm, label=\textbullet, itemsep=2pt, topsep=2pt]
+    \item \textbf{Nhóm Thịt, Thủy hải sản và Trứng (13 lớp -- 4.459 ảnh):} Cung cấp nguồn đạm (protein) và chất béo. Bao gồm các loại thịt gia súc, gia cầm (\textit{thịt bò, thịt heo, thịt gà, ếch, trứng}) và thủy hải sản giàu axit béo omega-3 (\textit{cá lóc, cá điêu hồng, cá thu, cá ngừ, cá hồi, tôm, mực, bạch tuộc}). Việc nhận diện chính xác nhóm này giúp phân biệt nguồn đạm có lợi và kiểm soát lượng chất béo bão hòa.
+    \item \textbf{Nhóm Rau, Củ quả và Nấm (17 lớp -- 5.831 ảnh):} Cung cấp chất xơ, vitamin, kali và khoáng chất, đóng vai trò then chốt trong hạ áp và giảm tải calo. Gồm các loại rau lá (\textit{cải xanh, bắp cải, rau muống, súp lơ}), củ quả (\textit{khoai tây, khoai lang, khổ qua, ớt chuông, bí đỏ, bầu, cà chua, cà rốt, dưa leo, ngô}) và nấm tươi (\textit{nấm kim châm, nấm đùi gà, nấm rơm}).
+    \item \textbf{Nhóm Trái cây tươi (15 lớp -- 5.145 ảnh):} Cung cấp vi chất dinh dưỡng và chất chống oxy hóa tự nhiên (\textit{cam, lê, thanh long, đu đủ, nho, chôm chôm, xoài, vải, ổi, sầu riêng, dâu tây, bơ, dưa hấu, chuối, táo}). Phân loại nhóm này hỗ trợ kiểm soát chỉ số đường huyết (Glycemic Index - GI) ở bệnh nhân thừa cân.
+    \item \textbf{Nhóm Hạt dinh dưỡng (2 lớp -- 686 ảnh):} Cung cấp chất béo chưa bão hòa đơn và đa có lợi cho tim mạch (\textit{hạnh nhân, óc chó}).
+\end{itemize}
+
+Bảng~\ref{tab:dataset_categories_summary} tổng hợp phân bố số lượng ảnh theo 4 nhóm dinh dưỡng chính sau khi đã chuẩn hóa cân bằng mẫu.
+
+\begin{table}[htbp]
+\centering
+\caption{Tổng hợp phân bố tập dữ liệu chuẩn hóa theo nhóm dinh dưỡng}
+\label{tab:dataset_categories_summary}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|p{5.5cm}|c|c|X|}
+\hline
+\textbf{Nhóm dinh dưỡng} & \textbf{Số lớp} & \textbf{Số lượng ảnh} & \textbf{Tỷ lệ (\%)} \\
+\hline
+Thịt, Thủy hải sản \& Trứng & 13 & 4.459 & 27,66\% \\
+Rau xanh, Củ quả \& Nấm & 17 & 5.831 & 36,17\% \\
+Trái cây tươi & 15 & 5.145 & 31,92\% \\
+Hạt dinh dưỡng & 2 & 686 & 4,25\% \\
+\hline
+\textbf{Tổng cộng} & \textbf{47} & \textbf{16.121} & \textbf{100,00\%} \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsubsection{Đặc trưng phân bố và chi tiết các lớp}
+Tập dữ liệu ghi nhận định dạng ảnh chủ đạo là JPEG (chiếm 97,9\%) và PNG (chiếm 2,1\%). Độ phân giải của ảnh gốc biến thiên từ các ảnh thu thập web ($176 \times 164$ pixels) đến các ảnh chụp độ nét cao từ cảm biến smartphone ($4032 \times 3840$ pixels), với độ phân giải trung bình đạt $735 \times 791$ pixels. Sự đa dạng này giúp mô hình không bị phụ thuộc vào một độ phân giải cố định, tăng khả năng khái quát hóa khi triển khai thực tế.
+
+Nhờ chiến lược oversampling, toàn bộ 47 lớp đối tượng đều đạt quy mô đồng nhất là $343$ ảnh/lớp, giúp triệt tiêu hoàn toàn sự mất cân bằng dữ liệu. Bảng~\ref{tab:dataset_distribution} liệt kê chi tiết danh mục 47 lớp thực phẩm đã được chuẩn hóa trong nghiên cứu.
+
+\begin{table}[htbp]
+\centering
+\caption{Thống kê chi tiết danh mục 47 lớp thực phẩm chuẩn hóa (Dataset\_Master)}
+\label{tab:dataset_distribution}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|X|c||X|c|}
+\hline
+\textbf{Tên lớp thực phẩm} & \textbf{Số lượng} & \textbf{Tên lớp thực phẩm} & \textbf{Số lượng} \\
+\hline
+Bạch tuộc (\textit{bach\_tuoc}) & 343 & Khoai tây (\textit{khoai\_tay}) & 343 \\
+Bắp cải (\textit{bap\_cai}) & 343 & Lê (\textit{le}) & 343 \\
+Bầu (\textit{bau}) & 343 & Mực (\textit{muc}) & 343 \\
+Bí đỏ (\textit{bi\_do}) & 343 & Nấm đùi gà (\textit{nam\_dui\_ga}) & 343 \\
+Bơ (\textit{bo}) & 343 & Nấm kim châm (\textit{nam\_kim\_cham}) & 343 \\
+Cà chua (\textit{ca\_chua}) & 343 & Nấm rơm (\textit{nam\_rom}) & 343 \\
+Cá điêu hồng (\textit{ca\_dieu\_hong}) & 343 & Ngô/Bắp (\textit{ngo}) & 343 \\
+Cá hồi (\textit{ca\_hoi}) & 343 & Nho (\textit{nho}) & 343 \\
+Cá lóc (\textit{ca\_loc}) & 343 & Óc chó (\textit{oc\_cho}) & 343 \\
+Cá ngừ (\textit{ca\_ngu}) & 343 & Ổi (\textit{oi}) & 343 \\
+Cà rốt (\textit{ca\_rot}) & 343 & Ớt chuông (\textit{ot\_chuong}) & 343 \\
+Cá thu (\textit{ca\_thu}) & 343 & Rau muống (\textit{rau\_muong}) & 343 \\
+Cải xanh (\textit{cai\_xanh}) & 343 & Sầu riêng (\textit{sau\_rieng}) & 343 \\
+Cam (\textit{cam}) & 343 & Súp lơ (\textit{sup\_lo}) & 343 \\
+Chôm chôm (\textit{chom\_chom}) & 343 & Táo (\textit{tao}) & 343 \\
+Chuối (\textit{chuoi}) & 343 & Thanh long (\textit{thanh\_long}) & 343 \\
+Dâu tây (\textit{dau\_tay}) & 343 & Thịt bò (\textit{thit\_bo}) & 343 \\
+Đu đủ (\textit{du\_du}) & 343 & Thịt gà (\textit{thit\_ga}) & 343 \\
+Dưa hấu (\textit{dua\_hau}) & 343 & Thịt heo (\textit{thit\_heo}) & 343 \\
+Dưa leo (\textit{dua\_leo}) & 343 & Tôm (\textit{tom}) & 343 \\
+Ếch (\textit{ech}) & 343 & Trứng (\textit{trung}) & 343 \\
+Hạnh nhân (\textit{hanh\_nhan}) & 343 & Vải (\textit{vai}) & 343 \\
+Khổ qua (\textit{kho\_qua}) & 343 & Xoài (\textit{xoai}) & 343 \\
+Khoai lang (\textit{khoai\_lang}) & 343 & & \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Tổng số lớp: 47}} & \multicolumn{2}{r|}{\textbf{Tổng số hình ảnh: 16.121}} \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsubsection{Phân chia tập dữ liệu (Dataset Splitting)}
+Nhằm đánh giá khách quan hiệu năng và hạn chế hiện tượng học vẹt (overfitting), tập dữ liệu được phân chia theo phương pháp lấy mẫu phân tầng (\textit{Stratified Split}) với tỷ lệ chuẩn $70\% - 15\% - 15\%$. Vì toàn bộ 47 lớp đối tượng đã được cân bằng đồng đều ở mức 343 ảnh/lớp, việc phân chia đảm bảo mỗi lớp đều có chính xác $240$ ảnh cho tập huấn luyện, $51$ ảnh cho tập kiểm định và $52$ ảnh cho tập kiểm thử:
+\begin{itemize}[leftmargin=0.8cm, label=\textbullet, itemsep=2pt, topsep=2pt]
+    \item \textbf{Tập Huấn luyện (Training Set - 70\%):} Bao gồm $11.280$ hình ảnh ($240\text{ ảnh/lớp} \times 47\text{ lớp}$), dùng để cập nhật trọng số mạng nơ-ron qua thuật toán lan truyền ngược.
+    \item \textbf{Tập Kiểm định (Validation Set - 15\%):} Bao gồm $2.397$ hình ảnh ($51\text{ ảnh/lớp} \times 47\text{ lớp}$), dùng để giám sát hàm mất mát (loss), điều chỉnh siêu tham số và áp dụng cơ chế dừng sớm (\textit{Early Stopping}).
+    \item \textbf{Tập Kiểm thử (Test Set - 15\%):} Bao gồm $2.444$ hình ảnh ($52\text{ ảnh/lớp} \times 47\text{ lớp}$), hoàn toàn không tham gia vào quá trình huấn luyện, dùng để đánh giá độ chính xác cuối cùng của mô hình.
+\end{itemize}
+
+\subsubsection{Tiền xử lý và tăng cường dữ liệu (Data Preprocessing \& Augmentation)}
+Để đảm bảo tính nhất quán về kích thước đầu vào và nâng cao độ bền vững của mô hình trước các nhiễu quang học thực tế, quy trình tiền xử lý và tăng cường dữ liệu được thiết kế theo các bước sau:
+\begin{enumerate}[leftmargin=0.8cm, itemsep=2pt, topsep=2pt]
+    \item \textbf{Chuẩn hóa không gian màu và kích thước:} Tất cả hình ảnh được chuyển đổi đồng nhất về không gian màu RGB 3 kênh. Đối với mô hình phân loại thực phẩm sâu, ảnh được định lại kích thước (\textit{resize}) về độ phân giải chuẩn $224 \times 224$ pixels bằng phép nội suy song tuyến (\textit{Bilinear Interpolation}).
+    \item \textbf{Chuẩn hóa giá trị điểm ảnh (Pixel Normalization):} Giá trị cường độ sáng của các điểm ảnh được co về đoạn $[0, 1]$ và tiếp tục chuẩn hóa theo phân phối chuẩn tắc dựa trên bộ tham số ImageNet: giá trị trung bình $\mu = [0.485, 0.456, 0.406]$ và độ lệch chuẩn $\sigma = [0.229, 0.224, 0.225]$.
+    \item \textbf{Tăng cường dữ liệu thời gian thực (On-the-fly Data Augmentation):} Trong pha huấn luyện, các phép biến đổi ngẫu nhiên được áp dụng trực tiếp lên từng lô dữ liệu (mini-batch) nhằm mô phỏng điều kiện camera thực tế:
+    \begin{itemize}[leftmargin=0.6cm, label=--, itemsep=1pt]
+        \item \textit{Lật ngang ngẫu nhiên (Random Horizontal Flip):} Xác suất $p = 0.5$ để mô hình nhận biết vật thể bất kể hướng đặt thực phẩm.
+        \item \textit{Xoay ngẫu nhiên (Random Rotation):} Xoay trong dải góc $[-15^\circ, +15^\circ]$, mô phỏng sự nghiêng góc cầm máy của người dùng.
+        \item \textit{Biến đổi quang học (Color Jitter):} Điều chỉnh ngẫu nhiên độ sáng ($\pm 20\%$), độ tương phản ($\pm 20\%$) và độ bão hòa màu ($\pm 20\%$) để thích ứng với nhiều mức độ chiếu sáng trong siêu thị và vệt bóng lóa của màng bọc PE.
+        \item \textit{Cắt tỉ lệ ngẫu nhiên (Random Resized Crop):} Trích xuất vùng ảnh ngẫu nhiên từ $80\%$ đến $100\%$ diện tích ban đầu, giúp mô hình nhận diện tốt khi thực phẩm bị che khuất một phần.
+    \end{itemize}
+\end{enumerate}
+
 \subsection{Tập dữ liệu nhãn khay siêu thị phục vụ OCR}
+
+Bên cạnh việc phân loại loại thực phẩm, hệ thống NutriCare cần xác định chính xác \textbf{khối lượng tịnh} của thực phẩm để có cơ sở nhân với hàm lượng vi chất dinh dưỡng trên mỗi $100\text{ g}$. Do đó, nhóm nghiên cứu đã xây dựng tập dữ liệu nhãn khay siêu thị phục vụ hai mô hình thành phần: mô hình YOLO phát hiện định vị nhãn và mô hình Lightweight OCR trích xuất chuỗi ký tự.
+
+\subsubsection{Cấu trúc nhãn giá siêu thị và các trường thông tin mục tiêu}
+Trên các khay thực phẩm đóng gói tại siêu thị Việt Nam, tem nhãn in nhiệt thường chứa nhiều thông tin dày đặc. Mô-đun OCR tập trung vào hai trường dữ liệu cốt lõi:
+\begin{itemize}[leftmargin=0.8cm, label=\textbullet, itemsep=2pt, topsep=2pt]
+    \item \textbf{Khối lượng tịnh (Net Weight):} Định dạng dạng số kèm đơn vị đo lường (ví dụ: \texttt{0.350 kg}, \texttt{450 g}, \texttt{1.205 kg}). Đây là thông số bắt buộc để tính toán tổng giá trị calo, natri và vi chất của khay thức ăn.
+    \item \textbf{Đơn giá hoặc Thành tiền (Unit Price / Total Price):} Chuỗi số biểu diễn giá tiền (ví dụ: \texttt{85.000 đ/kg}, \texttt{42.500 đ}), phục vụ tính năng quản lý chi tiêu dinh dưỡng của người dùng.
+\end{itemize}
+
+\subsubsection{Gán nhãn định vị phục vụ YOLO}
+Để bóc tách chính xác vùng nhãn trước khi đưa vào OCR, toàn bộ ảnh chụp khay thực phẩm được gán nhãn khung bao (bounding box) theo định dạng chuẩn YOLO (\texttt{class\_id x\_center y\_center width height}). Nhãn mục tiêu được định nghĩa là \texttt{label\_stamp} (vùng tem nhãn giá). Việc tách riêng vùng tem nhãn giúp giảm đáng kể nhiễu nền từ màng bọc thực phẩm và các hoa văn bao bì xung quanh, tạo tiền đề cho công đoạn OCR đạt độ chính xác cao.
+
+\subsubsection{Chuẩn hóa nhãn chuỗi văn bản (Ground-Truth) cho bài toán OCR}
+Các vùng tem nhãn sau khi cắt tách (crop) được phân phối vào tập đánh giá OCR. Mỗi mẫu nhãn được lưu trữ kèm chuỗi văn bản thực tế chuẩn (\textit{ground-truth annotation}) dưới định dạng tệp JSON/CSV, bao gồm tọa độ vùng chứa văn bản và nội dung ký tự tương ứng. Tập nhãn này được sử dụng để kiểm thử và tối ưu các chỉ số nhận diện ký tự (Character Error Rate - CER), nhận diện từ (Word Error Rate - WER) và độ chính xác trích xuất đúng trường dữ liệu (Field Extraction Accuracy).
 \section{Huấn luyện mô hình phát hiện vùng khay và nhãn (YOLO)}
 \section{Huấn luyện mô hình nhận diện thực phẩm (Deep Learning)}
 \section{Triển khai mô-đun OCR trích xuất khối lượng và đơn giá}
