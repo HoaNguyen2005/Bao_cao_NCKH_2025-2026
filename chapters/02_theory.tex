@@ -1,10 +1,517 @@
+%! TeX root = ../main.tex
 \chapter{CƠ SỞ LÝ THUYẾT}
 \section{Cơ sở dinh dưỡng học và tiêu chuẩn đối chiếu bệnh lý}
-\subsection{Khái niệm calo, macronutrients và nhu cầu năng lượng (BMR, TDEE)}
-\subsection{Quy tắc dinh dưỡng đối với bệnh béo phì và cao huyết áp}
+\label{sec:nutrition-foundation}
+
+Hệ thống khuyến nghị khẩu phần trong nghiên cứu vận hành dựa trên sự kết hợp giữa thị giác máy tính, trích xuất văn bản quang học và suy luận dựa trên luật dinh dưỡng. Cụ thể, mô hình YOLO26s định vị vùng thực phẩm và tem nhãn khối lượng trên ảnh; các mạng nơ-ron tích chập (CNN) phân loại 50 danh mục thực phẩm tươi sống; phân hệ nhận dạng ký tự quang học (OCR) đọc khối lượng trên nhãn đóng gói. Các kết quả này được ánh xạ vào cơ sở dữ liệu thành phần dinh dưỡng chuẩn hóa trên 100~g phần ăn được để tính lượng dưỡng chất và đối chiếu với mục tiêu chuyển hóa cũng như các quy tắc bệnh lý cá nhân.
+
+\subsection{Khái niệm calo, chất dinh dưỡng đa lượng và nhu cầu năng lượng}
+\label{subsec:energy-nutrients}
+
+\paragraph{Năng lượng và các chất dinh dưỡng đa lượng.}
+Trong khoa học dinh dưỡng, năng lượng sinh học được đo bằng kilocalorie (kcal), thường gọi tắt là calo. Năng lượng khẩu phần chủ yếu đến từ ba chất dinh dưỡng đa lượng gồm chất đạm, chất bột đường khả dụng và chất béo. Thành phần chất xơ thuộc nhóm bột đường nhưng được theo dõi độc lập theo khối lượng tuyệt đối (gam/ngày) để đánh giá chất lượng khẩu phần thay vì tính như nguồn sinh năng lượng chính.
+
+Gọi $P$, $C$ và $F$ (g) lần lượt là khối lượng chất đạm, chất bột đường khả dụng và chất béo. Tổng năng lượng $E$ (kcal) được ước tính theo hệ số chuyển đổi Atwater tiêu chuẩn:
+\begin{equation}
+    E \approx 4P + 4C + 9F \quad (\mathrm{kcal}).
+    \label{eq:atwater-energy}
+\end{equation}
+Khi cơ sở dữ liệu thực phẩm đã cung cấp giá trị năng lượng thực nghiệm, hệ thống ưu tiên dùng trực tiếp giá trị này theo tỷ lệ khối lượng khẩu phần, đồng thời tránh cộng trùng chất xơ khi xử lý số liệu bột đường tổng số.
+
+\paragraph{Chỉ số khối cơ thể và nhu cầu năng lượng.}
+Chỉ số khối cơ thể ($\mathrm{BMI}$) đánh giá tương quan giữa cân nặng $W$ (kg) và chiều cao $h$ (m):
+\begin{equation}
+    \mathrm{BMI} = \frac{W}{h^2} \quad (\mathrm{kg/m^2}).
+    \label{eq:bmi}
+\end{equation}
+Chỉ số $\mathrm{BMI}$ dùng để sàng lọc sơ bộ thể trạng (thiếu cân, bình thường, thừa cân hoặc béo phì), không thay thế biến số năng lượng trong tính toán tiêu hao hàng ngày.
+
+Tốc độ chuyển hóa cơ bản ($\mathrm{BMR}$) biểu thị mức năng lượng tối thiểu duy trì các chức năng sinh tồn khi nghỉ ngơi hoàn toàn. Nghiên cứu sử dụng phương trình Mifflin--St Jeor \cite{mifflin1990} để ước tính giá trị này cho người trưởng thành:
+\begin{equation}
+    \mathrm{BMR} = 10W + 6{,}25H - 5A + s \quad (\mathrm{kcal/ngày}),
+    \qquad
+    s = \begin{cases}
+        5 & \text{nếu là nam},\\
+        -161 & \text{nếu là nữ},
+    \end{cases}
+    \label{eq:bmr}
+\end{equation}
+trong đó $W$ (kg) là cân nặng, $H$ (cm) là chiều cao và $A$ (năm) là độ tuổi. Nếu thiếu bất kỳ thông số nhân trắc nào, hệ thống yêu cầu bổ sung thay vì tự suy diễn.
+
+Tổng tiêu hao năng lượng hàng ngày ($\mathrm{TDEE}$) phản ánh toàn bộ năng lượng cơ thể tiêu thụ trong 24 giờ, được tính từ $\mathrm{BMR}$ và hệ số vận động thể lực $k_{\mathrm{act}}$ theo tài liệu của FAO/WHO/UNU \cite{energyRequirements1990}:
+\begin{equation}
+    \mathrm{TDEE} = \mathrm{BMR} \cdot k_{\mathrm{act}} \quad (\mathrm{kcal/ngày}).
+    \label{eq:tdee}
+\end{equation}
+
+\paragraph{Mục tiêu năng lượng và cơ cấu đa lượng trong ngày.}
+Mức năng lượng mục tiêu mỗi ngày $E_{\mathrm{goal}}$ (kcal/ngày) được xác định bằng tổng của $\mathrm{TDEE}$ và độ lệch điều chỉnh $\Delta E$ theo mục tiêu cân nặng:
+\begin{equation}
+    E_{\mathrm{goal}} = \mathrm{TDEE} + \Delta E,
+    \qquad
+    \Delta E \begin{cases}
+        < 0 & \text{khi giảm cân},\\
+        = 0 & \text{khi duy trì cân nặng},\\
+        > 0 & \text{khi tăng cân}.
+    \end{cases}
+    \label{eq:e-goal}
+\end{equation}
+
+Theo khuyến cáo của Tổ chức Y tế Thế giới (WHO) cho người trưởng thành \cite{whoHealthyDiets2024,whoCarbohydrate2023}, cơ cấu năng lượng hợp lý gồm 45--75\% từ chất bột đường, 10--15\% từ chất đạm và 15--30\% từ chất béo. Các ngưỡng hạn chế đường tự do, chất béo bão hòa, chất béo chuyển hóa và natri \cite{whoHealthyDiet,whoSodium2012} được tổng hợp trong Bảng~\ref{tab:nutrition-targets}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Tiêu chí dinh dưỡng tham chiếu cho người trưởng thành}
+    \label{tab:nutrition-targets}
+    \begin{tabularx}{\textwidth}{@{}lX@{}}
+        \toprule
+        Thành phần & Tiêu chí đối chiếu \\
+        \midrule
+        Chất đạm & Chiếm 10--15\% tổng năng lượng khẩu phần. \\
+        Chất bột đường & Chiếm 45--75\% tổng năng lượng; ưu tiên nguồn giàu chất xơ tự nhiên. \\
+        Chất béo & Chiếm 15--30\% tổng năng lượng; ưu tiên chất béo không bão hòa. \\
+        Chất xơ & Tối thiểu 25~g/ngày từ thực phẩm tự nhiên. \\
+        Đường tự do & Dưới 10\% tổng năng lượng; khuyến nghị dưới 5\% để tăng lợi ích sức khỏe. \\
+        Chất béo bão hòa & Không vượt quá 10\% tổng năng lượng. \\
+        Chất béo chuyển hóa & Không vượt quá 1\% tổng năng lượng. \\
+        Natri & Dưới 2.000~mg/ngày (tương đương dưới 5~g muối ăn/ngày). \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Gọi $r_P$, $r_C$ và $r_F$ lần lượt là tỷ trọng năng lượng phân bổ cho chất đạm, chất bột đường và chất béo, thỏa mãn $r_P + r_C + r_F = 1$. Định mức khối lượng mục tiêu mỗi ngày của từng nhóm chất được quy đổi theo hệ số nhiệt lượng:
+\begin{equation}
+    P_{\mathrm{goal}} = \frac{r_P \cdot E_{\mathrm{goal}}}{4}, \qquad
+    C_{\mathrm{goal}} = \frac{r_C \cdot E_{\mathrm{goal}}}{4}, \qquad
+    F_{\mathrm{goal}} = \frac{r_F \cdot E_{\mathrm{goal}}}{9} \qquad (\mathrm{g/ngày}).
+    \label{eq:macro-goals}
+\end{equation}
+
+\paragraph{Đơn vị khẩu phần chuẩn theo hệ thống trao đổi thực phẩm.}
+Dựa trên hệ thống trao đổi thực phẩm trong dinh dưỡng lâm sàng \cite{wheeler2008food}, các thực phẩm cùng nhóm dưỡng chất chủ đạo được quy đổi về đơn vị khẩu phần chuẩn. Quy ước 1 khẩu phần chuẩn cung cấp lượng dưỡng chất định chuẩn lần lượt là $q_{\mathrm{unit}, P} = 7\text{ g}$ chất đạm, $q_{\mathrm{unit}, C} = 20\text{ g}$ chất bột đường khả dụng và $q_{\mathrm{unit}, F} = 5\text{ g}$ chất béo. Với thực phẩm tươi sống $i$ có hàm lượng các chất trên 100~g phần ăn được là $q_{i,P}, q_{i,C}, q_{i,F}$ (g/100~g), khối lượng 1 khẩu phần chuẩn $m_{\mathrm{serving}, i}$ (g) được tính bởi:
+\begin{equation}
+    m_{\mathrm{serving}, i} =
+    \begin{cases}
+        \dfrac{100 \cdot q_{\mathrm{unit}, P}}{q_{i,P}} = \dfrac{700}{q_{i,P}}, & \text{nếu thuộc nhóm giàu đạm},\\[10pt]
+        \dfrac{100 \cdot q_{\mathrm{unit}, C}}{q_{i,C}} = \dfrac{2000}{q_{i,C}}, & \text{nếu thuộc nhóm giàu bột đường},\\[10pt]
+        \dfrac{100 \cdot q_{\mathrm{unit}, F}}{q_{i,F}} = \dfrac{500}{q_{i,F}}, & \text{nếu thuộc nhóm giàu chất béo}.
+    \end{cases}
+    \label{eq:serving-mass}
+\end{equation}
+
+\paragraph{Định lượng đa dưỡng chất và theo dõi tích lũy trong ngày.}
+Thực phẩm tự nhiên luôn chứa đồng thời nhiều chất dinh dưỡng khác nhau; ví dụ thịt và thủy hải sản giàu đạm luôn đi kèm chất béo tự nhiên, còn củ giàu tinh bột vẫn chứa một phần đạm thực vật. Do đó, các nhãn nhóm thực phẩm chỉ phục vụ tìm kiếm và gợi ý, còn bộ tính toán sử dụng toàn bộ vector thành phần trích từ Bảng thành phần thực phẩm Việt Nam (\nolinkurl{gia_tri_dinh_duong_thuc_pham.csv}).
+
+Khi người dùng chụp khay thực phẩm có tem nhãn cân điện tử, phân hệ OCR trích xuất khối lượng tịnh $m_i^{\mathrm{label}}$ (g). Kết hợp tỷ lệ sử dụng $\gamma_i \in (0, 1]$ do người dùng xác nhận (mặc định $\gamma_i = 1$ nếu sử dụng toàn bộ khay), khối lượng nguyên liệu $m_i$ (g) đưa vào tính toán là:
+\begin{equation}
+    m_i = \gamma_i \cdot m_i^{\mathrm{label}} \quad (\mathrm{g}).
+    \label{eq:consumed-mass}
+\end{equation}
+Với khối lượng $m_i$ (g), lượng dưỡng chất $j \in \{P, C, F, E, \mathrm{Na}, \mathrm{K}, \dots\}$ của thực phẩm $i$ được tính theo hàm lượng chuẩn hóa trên 100~g phần ăn được $q_{i,j}$:
+\begin{equation}
+    Q_{i,j} = \frac{m_i}{100} \cdot q_{i,j}.
+    \label{eq:nutrient-matrix}
+\end{equation}
+
+Bảng~\ref{tab:food-composition-examples} minh họa giá trị dinh dưỡng trên 100~g phần ăn được ở trạng thái tươi sống nguyên bản cùng khối lượng 1 khẩu phần chuẩn tính theo Phương trình~\eqref{eq:serving-mass}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Thành phần dinh dưỡng trên 100~g của một số thực phẩm tươi sống tiêu biểu}
+    \label{tab:food-composition-examples}
+    \begingroup
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.6cm}*{4}{>{\centering\arraybackslash}X}>{\raggedright\arraybackslash}p{2.3cm}@{}}
+        \toprule
+        \textbf{Thực phẩm (mã CSDL)} & \textbf{Năng lượng (kcal)} & \textbf{Chất đạm (g)} & \textbf{Chất béo (g)} & \textbf{Bột đường (g)} & \textbf{Khẩu phần chuẩn (g)} \\
+        \midrule
+        Thịt gà ta tươi (7013) & 199 & 20,30 & 13,10 & 0 & 34,5 (đạm) \\
+        Thịt bò bắp sống (7094) & 122 & 21,75 & 3,85 & 0 & 32,2 (đạm) \\
+        Cá hồi tươi (8011) & 136 & 22,00 & 5,30 & 0 & 31,8 (đạm) \\
+        Tôm biển tươi (8051) & 82 & 17,60 & 0,90 & 0,90 & 39,8 (đạm) \\
+        Trứng gà ta tươi (9001) & 150 & 12,96 & 10,33 & 1,25 & 54,0 (đạm) \\
+        Khoai lang tươi (2008) & 124 & 0,80 & 0,20 & 29,80 & 67,1 (bột đường) \\
+        Quả bơ tươi (5042) & 103 & 1,90 & 9,40 & 2,80 & 53,2 (chất béo) \\
+        \bottomrule
+    \end{tabularx}
+    \endgroup
+\end{table}
+
+Gọi $\mathcal{M}_{\mathrm{day}}$ là tập hợp các thực phẩm người dùng đã ghi nhận trong ngày. Tổng lượng dưỡng chất $j$ tích lũy và lượng còn thiếu so với mục tiêu ngày $G_j \in \{P_{\mathrm{goal}}, C_{\mathrm{goal}}, F_{\mathrm{goal}}, E_{\mathrm{goal}}\}$ được xác định bởi:
+\begin{equation}
+    Q_j^{\mathrm{day}} = \sum_{i \in \mathcal{M}_{\mathrm{day}}} Q_{i,j} = \sum_{i \in \mathcal{M}_{\mathrm{day}}} \frac{m_i}{100} \cdot q_{i,j},
+    \label{eq:daily-accumulated}
+\end{equation}
+\begin{equation}
+    R_j = \max\left(0, \; G_j - Q_j^{\mathrm{day}}\right).
+    \label{eq:daily-remaining}
+\end{equation}
+Hàm $\max(0, \cdot)$ giữ $R_j$ không âm khi mức nạp đã đạt hoặc vượt mục tiêu ngày ($Q_j^{\mathrm{day}} \ge G_j$). Hệ thống thực hiện ước lượng và theo dõi tích lũy dinh dưỡng dựa trên khối lượng nguyên liệu tươi sống đầu vào; các biến đổi do gia nhiệt hoặc gia vị nêm nếm nằm ngoài phạm vi mô hình hiện tại.
+
+\paragraph{Đánh giá mức đóng góp và gợi ý bổ sung thực phẩm.}
+Với phần thực phẩm $i$ có khối lượng $m_i$, tỷ lệ đóng góp phần trăm ($\mathrm{TL}_{i,j}$) đối với mục tiêu ngày $G_j$ và số khẩu phần chuẩn tương đương còn cần bổ sung cho ba nhóm chất chính lần lượt là:
+\begin{equation}
+    \mathrm{TL}_{i,j} = \frac{Q_{i,j}}{G_j} \times 100\% = \frac{m_i \cdot q_{i,j}}{100 \cdot G_j} \times 100\%,
+    \label{eq:contribution-pct}
+\end{equation}
+\begin{equation}
+    N_{\mathrm{need}, P} = \frac{R_P}{7}, \qquad
+    N_{\mathrm{need}, C} = \frac{R_C}{20}, \qquad
+    N_{\mathrm{need}, F} = \frac{R_F}{5}.
+    \label{eq:servings-needed}
+\end{equation}
+Để đa dạng hóa bữa ăn từ lượng còn thiếu $R_j$, gọi $Q_{\mathrm{serving}, k, j} = \frac{m_{\mathrm{serving}, k}}{100} \cdot q_{k,j}$ là hàm lượng dưỡng chất $j$ trong 1 khẩu phần chuẩn của thực phẩm gợi ý $k$. Hệ thống tìm tập số lượng khẩu phần $\{s_k\}$ ($s_k > 0$) sao cho tổng dưỡng chất bổ sung nằm trong dung sai cho phép $\epsilon_j$:
+\begin{equation}
+    \left| \sum_{k} s_k \cdot Q_{\mathrm{serving}, k, j} - R_j \right| \le \epsilon_j, \qquad \forall j \in \{P, C, F, E\},
+    \label{eq:food-exchange-opt}
+\end{equation}
+đồng thời bảo đảm tổng năng lượng tích lũy không vượt quá $E_{\mathrm{goal}}$.
+
+\subsection{Khuyến nghị dinh dưỡng theo bệnh lý và phạm vi áp dụng của bộ luật}
+\label{subsec:pathological-nutrition-rules}
+
+Bộ luật dinh dưỡng của NutriCare phân định ba loại căn cứ gồm khuyến nghị chuyên môn, tham số thiết kế và mục tiêu dinh dưỡng cá nhân hóa. Các ngưỡng trong thuật toán chỉ có ý nghĩa điều trị khi đáp ứng đầy đủ điều kiện lâm sàng và hồ sơ xét nghiệm của từng người bệnh.
+
+\paragraph{Bệnh thận mạn.}
+KDIGO 2024 đề xuất mức chất đạm khoảng $0{,}8\text{ g/kg/ngày}$ cho người trưởng thành mắc bệnh thận mạn (CKD) giai đoạn G3--G5 \cite{kdigo2024clinical}. Đối với người bệnh CKD G3--G5 chưa lọc máu, không mắc đái tháo đường và ổn định về chuyển hóa, KDOQI 2020 hướng dẫn mức $0{,}55\text{--}0{,}60\text{ g/kg/ngày}$ dưới sự giám sát chuyên môn; các trường hợp có đái tháo đường hoặc đang lọc máu áp dụng định mức riêng \cite{nkfKdoqiNutrition2020}. Sau khi xác lập định mức cá nhân $p_{\mathrm{max}}$ (g/kg/ngày) theo cân nặng $W$ (kg), ngưỡng đạm ngày và số khẩu phần tương đương được tính theo:
+\begin{equation}
+    P_{\mathrm{max}} = p_{\mathrm{max}} \cdot W \quad (\mathrm{g/ngày}), \qquad
+    N_{\mathrm{max}, P} = \frac{P_{\mathrm{max}}}{7} \quad (\text{khẩu phần/ngày}).
+    \label{eq:ckd-protein-limit}
+\end{equation}
+Giá trị $P_{\mathrm{max}}$ được đối chiếu với tổng đạm nạp vào trong ngày từ Phương trình~\eqref{eq:daily-accumulated}. Mục tiêu kali và phốt pho cũng cần cá nhân hóa theo kết quả xét nghiệm và nguồn thực phẩm \cite{nkfKdoqiNutrition2020}; lượng khoáng chất thực tế từ khẩu phần được quy đổi qua Phương trình~\eqref{eq:nutrient-matrix}.
+
+\paragraph{Bệnh gút.}
+Hướng dẫn ACR 2020 đưa ra khuyến nghị có điều kiện về việc hạn chế thực phẩm giàu nhân purin đối với người mắc bệnh gút \cite{acrGout2020}. Danh mục cảnh báo hỗ trợ bước sàng lọc thực phẩm; khi chưa có nguồn dữ liệu định lượng purin cho mọi mặt hàng, các ngưỡng giới hạn số khẩu phần trong ứng dụng mang tính tham số thiết kế tham khảo, không dùng để dự đoán cơn gút cấp.
+
+\paragraph{Rối loạn lipid máu.}
+Nhóm luật đối chiếu thành phần chất béo khẩu phần với các ngưỡng tại Bảng~\ref{tab:nutrition-targets}. AHA khuyến nghị hạn chế chất béo bão hòa dưới 6\% tổng năng lượng \cite{ahaSaturatedFat}. Trong cấu hình thiết kế của ứng dụng, giới hạn chất béo bão hòa dưới 7\% tổng năng lượng và chất béo chuyển hóa dưới 0,5~g/ngày được dùng làm ngưỡng sàng lọc riêng, phối hợp cùng các bệnh đồng mắc khi người dùng khai báo nhiều tình trạng bệnh lý.
+
+\paragraph{Bệnh tim mạch và tăng huyết áp.}
+Thông tin bệnh tim mạch và tăng huyết áp được quản lý bằng các cờ hồ sơ độc lập. Đối chiếu lượng natri tham khảo hướng dẫn của WHO tại Bảng~\ref{tab:nutrition-targets} và ngưỡng 1.500~mg/ngày (cùng mức trần chung 2.300~mg/ngày) của AHA \cite{ahaSodium}. Tổng lượng natri ước tính trong ngày chỉ phản ánh mức đáp ứng định mức dinh dưỡng từ dữ liệu thực phẩm đã nhập, không dùng để dự báo biến cố tăng huyết áp cấp sau một bữa ăn.
+
+\paragraph{Đái tháo đường và mục tiêu cân nặng.}
+ADA nhấn mạnh việc cá nhân hóa kế hoạch dinh dưỡng thay vì áp dụng một tỷ lệ đa lượng duy nhất cho mọi người mắc đái tháo đường \cite{adaNutrition2026}. Lượng bột đường cần được đánh giá cùng tổng năng lượng và thông tin điều trị; chỉ số đường huyết (GI) và lượng đường tự do đòi hỏi dữ liệu chuyên biệt, không suy trực tiếp từ tổng bột đường.
+
+Trong kiểm soát cân nặng, WHO xác định $\mathrm{BMI} = 23\text{ kg/m}^2$ là điểm hành động về nguy cơ ở quần thể châu Á chứ không phải ngưỡng chẩn đoán béo phì thống nhất \cite{whoAsianBMI2004}. Tương tự, mức thâm hụt $500\text{ kcal/ngày}$ tham khảo từ các chương trình giảm cân \cite{adaWeight2026} và ngưỡng chặn dưới $1.000\text{ kcal/ngày}$ tham khảo công cụ của NIDDK \cite{niddkBodyWeightPlanner} là các tham số thiết kế kỹ thuật cần được rà soát cá nhân hóa trước khi áp dụng cho từng người bệnh.
+
+\paragraph{Dị ứng thực phẩm.}
+Với các dị nguyên đã được người dùng xác nhận trong hồ sơ, hệ thống áp dụng điều kiện loại trừ cứng bằng cách đặt số khẩu phần được phép đề xuất bằng không:
+\begin{equation}
+    N_{\mathrm{serving}, i} = 0 \qquad (\text{nếu thực phẩm } i \text{ thuộc danh sách dị nguyên}).
+    \label{eq:allergy-constraint}
+\end{equation}
+Do ảnh chụp chỉ phản ánh hình thái bề mặt và chưa kiểm chứng được nguy cơ nhiễm chéo hay thành phần ẩn, kết quả không phát hiện dị nguyên từ ảnh không cấu thành xác nhận an toàn tuyệt đối.
+
 \section{Mạng nơ-ron tích chập và các kiến trúc phân loại thực phẩm}
-\subsection{Tổng quan về Convolutional Neural Networks (CNN)}
-\subsection{Các kiến trúc mạng tối ưu (MobileNetV2, EfficientNet, ResNet)}
-\section{Mô hình phát hiện đối tượng YOLO trong trích xuất vùng quan tâm}
-\section{Kỹ thuật nhận dạng ký tự quang học (Lightweight OCR)}
-\section{Các chỉ số đánh giá hiệu năng mô hình (Accuracy, mAP, F1-Score)}
+\label{sec:cnn-food-classification}
+
+Hệ thống NutriCare sử dụng mạng nơ-ron tích chập (CNN) để phân loại ảnh khay thực phẩm tươi sống thành 50 lớp trước khi tra cứu thành phần dinh dưỡng. Bảy kiến trúc được khảo sát và đối chiếu trong nghiên cứu gồm VGG16, DenseNet121, MobileNetV2, MobileNetV3-Small, MobileNetV3-Large, EfficientNetB0 và EfficientNetV2B0.
+
+\subsection{Tổng quan về mạng nơ-ron tích chập}
+\label{subsec:cnn-overview}
+
+CNN tự động trích xuất đặc trưng hình ảnh theo cấu trúc phân cấp, từ các đặc trưng cơ bản như cạnh, góc, màu sắc ở tầng nông đến cấu trúc hình thái và vân bề mặt thực phẩm ở tầng sâu. Nhờ cơ chế kết nối cục bộ và chia sẻ trọng số bộ lọc trên toàn bộ không gian ảnh, CNN giảm đáng kể số lượng tham số tự do so với mạng kết nối đầy đủ.
+
+\paragraph{Phép tích chập và hàm kích hoạt.}
+Với đầu vào $\mathbf{I} \in \mathbb{R}^{H_{\mathrm{in}} \times W_{\mathrm{in}} \times C_{\mathrm{in}}}$, bộ lọc $\mathbf{K} \in \mathbb{R}^{K_h \times K_w \times C_{\mathrm{in}}}$ và hệ số chệch $b$, mỗi giá trị tại tọa độ $(i, j)$ trên một kênh bản đồ đặc trưng đầu ra $\mathbf{F}$ (xét trường hợp bước trượt bằng 1, không đệm biên) được xác định bởi:
+\begin{equation}
+    F(i, j) = \sum_{m=0}^{K_h-1} \sum_{n=0}^{K_w-1} \sum_{c=0}^{C_{\mathrm{in}}-1} I(i+m,\, j+n,\, c) \cdot K(m, n, c) + b.
+    \label{eq:cnn-conv}
+\end{equation}
+Sau biến đổi tuyến tính của tích chập, tín hiệu đi qua hàm kích hoạt phi tuyến $\operatorname{ReLU}$ để tăng khả năng biểu diễn và hạn chế hiện tượng tiêu biến đạo hàm:
+\begin{equation}
+    \operatorname{ReLU}(x) = \max(0, x).
+    \label{eq:relu}
+\end{equation}
+
+\paragraph{Tầng gộp trung bình toàn cục và kỹ thuật điều chuẩn.}
+Tầng gộp trung bình toàn cục (GAP) nén bản đồ đặc trưng cuối mạng nền $\mathbf{F} \in \mathbb{R}^{H \times W \times C}$ (với chiều cao $H$, chiều rộng $W$ và $C$ kênh) bằng cách lấy trung bình không gian trên từng kênh:
+\begin{equation}
+    v_c = \frac{1}{H \cdot W} \sum_{i=1}^{H} \sum_{j=1}^{W} F(i, j, c), \qquad c = 1, 2, \dots, C,
+    \label{eq:gap}
+\end{equation}
+thu được vector đặc trưng $\mathbf{v} = [v_1, v_2, \dots, v_C]^T \in \mathbb{R}^C$. Phép biến đổi này thay thế việc duỗi phẳng bản đồ đặc trưng, giúp giảm mạnh số tham số ở các tầng cuối và hạn chế quá khớp.
+
+Trong quá trình huấn luyện, tầng chuẩn hóa theo lô (BN) ổn định phân phối giá trị kích hoạt qua từng lô nhỏ, còn kỹ thuật Dropout ngẫu nhiên tắt một tỷ lệ $p \in [0, 1)$ phần tử đầu vào và khuếch đại phần còn lại theo quy tắc:
+\begin{equation}
+    \mathbf{y} = \frac{\mathbf{m} \odot \mathbf{x}}{1 - p}, \qquad m_d \sim \operatorname{Bernoulli}(1 - p),
+    \label{eq:dropout}
+\end{equation}
+trong đó $\odot$ là phép nhân từng phần tử và các biến $m_d$ được lấy mẫu độc lập. Khi suy luận, toàn bộ các phần tử được giữ nguyên hoạt động.
+
+\subsection{Các kiến trúc mạng được khảo sát}
+\label{subsec:tested-architectures}
+
+\paragraph{VGG16.}
+VGG16 \cite{simonyan2014very} xếp chồng tuần tự 13 tầng tích chập kích thước $3\times 3$ thành 5 khối xen kẽ các tầng gộp cực đại $2\times 2$. Việc sử dụng chuỗi bộ lọc nhỏ giúp trích xuất chi tiết hình học rõ ràng nhưng làm mạng nền có quy mô lớn (khoảng 14,7 triệu tham số), đóng vai trò mô hình đối chiếu truyền thống.
+
+\paragraph{DenseNet121.}
+DenseNet121 \cite{huang2017densely} áp dụng kết nối dày đặc bên trong mỗi khối đặc trưng, trong đó tầng thứ $\ell$ tiếp nhận đầu vào là phép ghép theo chiều kênh của toàn bộ các bản đồ đặc trưng từ các tầng đứng trước:
+\begin{equation}
+    \mathbf{F}_\ell = H_\ell\left([\mathbf{F}_0, \mathbf{F}_1, \dots, \mathbf{F}_{\ell-1}]\right),
+    \label{eq:densenet-concat}
+\end{equation}
+với $H_\ell(\cdot)$ là phép biến đổi phi tuyến hợp thành từ chuẩn hóa theo lô, kích hoạt ReLU và tích chập. Giữa các khối dày đặc đặt tầng chuyển tiếp gồm tích chập $1\times 1$ và gộp trung bình $2\times 2$ để nén chiều kênh. Cơ chế tái sử dụng đặc trưng trực tiếp giúp dòng đạo hàm lan truyền thông suốt đến các tầng nông trong khi chỉ tiêu tốn khoảng 7,0 triệu tham số cho mạng nền 121 tầng.
+
+\paragraph{MobileNetV2.}
+MobileNetV2 \cite{sandler2018mobilenetv2} được thiết kế cho thiết bị di động dựa trên hai cơ chế chính. Thứ nhất, tích chập tách biệt theo chiều sâu phân tách tích chập chuẩn thành bước lọc không gian riêng trên từng kênh ($D_K \times D_K$) và bước tích chập điểm $1\times 1$ kết hợp $M$ kênh đầu vào thành $N$ kênh đầu ra trên bản đồ kích thước $D_F \times D_F$. Bỏ qua hệ số chệch, tỷ lệ số phép nhân--tích lũy giảm xuống còn:
+\begin{equation}
+    \frac{D_K^2 M D_F^2 + M N D_F^2}{D_K^2 M N D_F^2} = \frac{1}{N} + \frac{1}{D_K^2}.
+    \label{eq:dw-conv-ratio}
+\end{equation}
+Thứ hai, khối thắt cổ chai đảo ngược mở rộng số kênh bằng tích chập $1\times 1$, xử lý không gian bằng tích chập chiều sâu $3\times 3$ với hàm kích hoạt giới hạn biên $\operatorname{ReLU6}(x) = \min(\max(0, x), 6)$, sau đó chiếu tuyến tính về không gian chiều thấp và cộng kết nối tắt nhằm bảo toàn thông tin đặc trưng.
+
+\paragraph{MobileNetV3-Small và MobileNetV3-Large.}
+MobileNetV3 \cite{howard2019searching} kế thừa cấu trúc khối thắt cổ chai đảo ngược của MobileNetV2, bổ sung mô-đun chú ý kênh Squeeze-and-Excitation để tự động điều chỉnh trọng số từng kênh đặc trưng và sử dụng hàm kích hoạt xấp xỉ:
+\begin{equation}
+    \operatorname{h-swish}(x) = x \cdot \frac{\min(\max(0, x + 3), 6)}{6}.
+    \label{eq:h-swish}
+\end{equation}
+Hàm này loại bỏ phép tính hàm mũ phức tạp khi chạy trên vi xử lý di động. Hai biến thể Small và Large khác nhau về số tầng và số kênh, cho phép đối chiếu sự đánh đổi giữa tốc độ và độ chính xác.
+
+\paragraph{EfficientNetB0.}
+EfficientNetB0 \cite{tan2019efficientnet} là kiến trúc nền tảng áp dụng phương pháp định cỡ phức hợp, cân bằng đồng thời chiều sâu mạng, độ rộng kênh và độ phân giải ảnh đầu vào. Khối cấu trúc cơ sở của mạng là MBConv kết hợp cơ chế chú ý kênh Squeeze-and-Excitation, đạt năng lực biểu diễn cao với khoảng 4,0 triệu tham số tại mạng nền.
+
+\paragraph{EfficientNetV2B0.}
+Kiến trúc EfficientNetV2B0 \cite{tan2021efficientnetv2} được cải tiến từ EfficientNetB0 nhằm tăng tốc độ huấn luyện và độ chính xác suy luận bằng cách dùng khối Fused-MBConv ở các tầng nông. Khối này hợp nhất phép tích chập mở rộng $1\times 1$ và tích chập chiều sâu $3\times 3$ thành một phép tích chập $3\times 3$ tiêu chuẩn, giúp tận dụng hiệu quả năng lực tính toán song song của phần cứng hiện đại trong khi vẫn giữ các khối MBConv ở những tầng sâu.
+
+\subsection{Học chuyển giao, đầu phân loại nút cổ chai và kết quả thực nghiệm}
+\label{subsec:transfer-learning-pipeline}
+
+\paragraph{Chiến lược học chuyển giao và tinh chỉnh từng phần.}
+Cả bảy mô hình đều khởi tạo từ trọng số tiền huấn luyện trên tập dữ liệu ImageNet \cite{deng2009imagenet} và loại bỏ đầu phân loại 1.000 lớp gốc (\texttt{include\_top = False}). Với ảnh đầu vào kích thước $224\times 224\times 3$, nghiên cứu áp dụng tỷ lệ mở khóa chuẩn hóa $\alpha_{\mathrm{tune}} = 0{,}2$, đóng băng 80\% số tầng đầu của mạng nền để giữ các bộ trích xuất đặc trưng cơ bản và chỉ mở khóa 20\% số tầng sâu nhất từ chỉ số cắt $k_{\mathrm{freeze}}$:
+\begin{equation}
+    k_{\mathrm{freeze}} = \left\lfloor (1 - \alpha_{\mathrm{tune}}) N_{\mathrm{layers}} \right\rfloor = \left\lfloor 0{,}8 \cdot N_{\mathrm{layers}} \right\rfloor,
+    \label{eq:freeze-cutoff}
+\end{equation}
+trong đó $N_{\mathrm{layers}}$ là tổng số tầng của mạng nền và các tầng được đánh chỉ số từ $0$. Toàn bộ các tầng chuẩn hóa theo lô (BN) nằm trong mạng nền đều được giữ ở trạng thái đóng băng (\texttt{trainable = False} và chạy suy luận với \texttt{training = False}) để tránh trôi dạt tham số trung bình và phương sai khi huấn luyện theo kích thước lô $B = 32$:
+\begin{equation}
+    \operatorname{Trainable}(\text{Tầng}_i) =
+    \begin{cases}
+        \text{False}, & \text{nếu } i < k_{\mathrm{freeze}} \text{ hoặc } \text{Tầng}_i \text{ là tầng BN},\\
+        \text{True}, & \text{ngược lại}.
+    \end{cases}
+    \label{eq:bn-freeze-rule}
+\end{equation}
+
+\paragraph{Tiền xử lý và kiến trúc đầu phân loại nút cổ chai.}
+Trong quá trình huấn luyện, ảnh đi qua khối tăng cường dữ liệu trực tuyến gồm lật ngang ngẫu nhiên, xoay trong khoảng $[-36^\circ, +36^\circ]$, thu phóng $\pm 10\%$, biến thiên tương phản và độ sáng $\pm 10\%$, tiếp theo là phép chuẩn hóa điểm ảnh tương thích từng kiến trúc (VGG16 chuyển đổi kênh màu và trừ trung bình ImageNet; MobileNetV2 co dãn điểm ảnh về $[-1, 1]$; DenseNet121 chuẩn hóa theo trung bình và độ lệch chuẩn ImageNet; MobileNetV3, EfficientNetB0 và EfficientNetV2B0 nhận thang giá trị $[0, 255]$ nhờ tầng chuẩn hóa tích hợp sẵn trong mạng nền).
+
+Đường ống phân loại đầy đủ từ ảnh đầu vào $\mathbf{x} \in \mathbb{R}^{224 \times 224 \times 3}$ qua mạng nền (tạo bản đồ đặc trưng $\mathbf{F} \in \mathbb{R}^{7 \times 7 \times C}$) và đầu phân loại nút cổ chai 256 chiều đến đầu ra dự đoán $\hat{\mathbf{y}}$ tuân theo sơ đồ:
+\begin{equation}
+\begin{aligned}
+    \mathbf{x}
+    &\xrightarrow{\text{Tăng cường \& Tiền xử lý}} \mathbf{x}_{\mathrm{norm}}
+    \xrightarrow{\text{Mạng nền}} \mathbf{F}
+    \xrightarrow{\text{GAP}} \mathbf{v},\\
+    \mathbf{v}
+    &\xrightarrow{\text{BN + Dropout}(0{,}4)} \tilde{\mathbf{v}}
+    \xrightarrow{\text{Dense}(256) + \text{BN + ReLU + Dropout}(0{,}3)} \tilde{\mathbf{h}}
+    \xrightarrow{\text{Dense}(50) + \text{Softmax}} \hat{\mathbf{y}}.
+\end{aligned}
+\label{eq:bottleneck-pipeline}
+\end{equation}
+Cụ thể, vector $\mathbf{v} \in \mathbb{R}^C$ từ Phương trình~\eqref{eq:gap} qua chuẩn hóa theo lô và tầng Dropout tỷ lệ $0{,}4$ tạo thành $\tilde{\mathbf{v}} \in \mathbb{R}^C$. Sau đó, tầng ẩn nút cổ chai 256 đơn vị (không dùng hệ số chệch riêng vì có tầng chuẩn hóa theo lô đứng liền sau) kết hợp kích hoạt ReLU tính vector biểu diễn nén:
+\begin{equation}
+    \mathbf{h} = \operatorname{ReLU}\left(\operatorname{BN}\left(\mathbf{W}_1 \tilde{\mathbf{v}}\right)\right) \in \mathbb{R}^{256},
+    \label{eq:bottleneck-hidden}
+\end{equation}
+với $\mathbf{W}_1 \in \mathbb{R}^{256 \times C}$. Vector $\mathbf{h}$ tiếp tục qua Dropout tỷ lệ $0{,}3$ được $\tilde{\mathbf{h}}$ và đưa vào tầng tuyến tính cuối cùng tính điểm số $z_c = \mathbf{w}_{2,c}^T \tilde{\mathbf{h}} + b_{2,c}$ cho từng lớp $c \in \{1, 2, \dots, 50\}$. Xác suất phân loại thu được qua hàm Softmax:
+\begin{equation}
+    \hat{y}_c = \frac{\exp(z_c)}{\sum_{k=1}^{50} \exp(z_k)}, \qquad c = 1, 2, \dots, 50.
+    \label{eq:softmax-50}
+\end{equation}
+
+\paragraph{Hàm mất mát và tối ưu hóa.}
+Để tránh mô hình quá tự tin vào nhãn huấn luyện và giảm hiện tượng quá khớp, hệ thống sử dụng kỹ thuật làm mịn nhãn với hệ số $\alpha = 0{,}1$ trên $K = 50$ lớp thực phẩm. Từ nhãn gốc dạng vector đơn vị $y_{i,c} \in \{0, 1\}$ của mẫu thứ $i$, nhãn mục tiêu làm mịn được tính theo:
+\begin{equation}
+    \tilde{y}_{i,c} = (1 - \alpha) y_{i,c} + \frac{\alpha}{K} = 0{,}9\,y_{i,c} + 0{,}002.
+    \label{eq:label-smoothing}
+\end{equation}
+Hàm mất mát huấn luyện kết hợp phân loại chéo đa lớp với thành phần phạt điều chuẩn $L_2$ ($\lambda = 10^{-4}$) áp dụng lên ma trận trọng số $\mathbf{W}_1$ của tầng nút cổ chai:
+\begin{equation}
+    \mathcal{L}_{\mathrm{cls\_net}} = -\frac{1}{N} \sum_{i=1}^{N} \sum_{c=1}^{50} \tilde{y}_{i,c} \log(\hat{y}_{i,c}) + \lambda \|\mathbf{W}_1\|_2^2.
+    \label{eq:cls-loss}
+\end{equation}
+Quá trình tối ưu dùng thuật toán Adam \cite{kingma2014adam} với tốc độ học khởi tạo $\eta_0 = 10^{-4}$ trong tối đa 100 epoch, kết hợp giảm tốc độ học theo hệ số $0{,}5$ khi mất mát tập xác thực không cải thiện sau 3 epoch (tối thiểu $10^{-6}$) và dừng sớm sau 7 epoch không cải thiện để khôi phục bộ trọng số tối ưu nhất.
+
+\paragraph{Kết quả thực nghiệm so sánh 7 mô hình.}
+Các mô hình được đánh giá trên cùng tập kiểm thử độc lập gồm 794 ảnh thuộc 50 lớp thực phẩm tươi sống (đã qua bước lọc trùng lặp tuyệt đối bằng mã băm MD5 và lọc ảnh gần giống bằng dHash, nạp tuần tự theo lô 32 ảnh và làm ấm đồ thị GPU trước khi bấm giờ). Kết quả chi tiết được tổng hợp tại Bảng~\ref{tab:model-comparison-7}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Kết quả đánh giá so sánh 7 kiến trúc phân loại trên tập kiểm thử (794 ảnh, 50 lớp)}
+    \label{tab:model-comparison-7}
+    \begingroup
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabularx}{\textwidth}{@{}Xrrrrr@{}}
+        \toprule
+        \textbf{Mô hình} & \textbf{Đúng/Tổng} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} & \textbf{Tổng (s)} & \textbf{TB (ms/ảnh)} \\
+        \midrule
+        \textbf{DenseNet121}      & \textbf{780/794} & \textbf{98,24} & \textbf{98,15} & 8,34 & 10,50 \\
+        \textbf{EfficientNetV2B0} & \textbf{780/794} & \textbf{98,24} & 97,88          & 5,24 & 6,60 \\
+        EfficientNetB0            & 778/794          & 97,98          & 97,67          & 4,96 & 6,25 \\
+        MobileNetV2               & 775/794          & 97,61          & 97,38          & 2,90 & 3,65 \\
+        VGG16                     & 773/794          & 97,36          & 97,07          & 4,39 & 5,53 \\
+        MobileNetV3-Large         & 769/794          & 96,85          & 96,50          & 3,00 & 3,78 \\
+        MobileNetV3-Small         & 762/794          & 95,97          & 95,47          & \textbf{2,36} & \textbf{2,98} \\
+        \bottomrule
+    \end{tabularx}
+    \endgroup
+\end{table}
+
+Số liệu tại Bảng~\ref{tab:model-comparison-7} cho thấy \textbf{DenseNet121} và \textbf{EfficientNetV2B0} cùng dẫn đầu về độ chính xác phân loại ($98{,}24\%$, đoán đúng 780 trên 794 ảnh). Trong đó, DenseNet121 đạt chỉ số Macro-F1 cao nhất ($98{,}15\%$) nhờ khả năng tái sử dụng đặc trưng dày đặc giữa các lớp, còn EfficientNetV2B0 đạt tốc độ suy luận nhanh hơn đáng kể ($5{,}24\text{ s}$ so với $8{,}34\text{ s}$ trên toàn tập kiểm thử), tạo sự cân bằng thuận lợi cho triển khai trên dịch vụ máy chủ. Về phía các kiến trúc gọn nhẹ hướng thiết bị biên, MobileNetV2 đạt độ chính xác $97{,}61\%$ với thời gian xử lý trung bình $3{,}65\text{ ms/ảnh}$, vượt trội hơn cả hai biến thể MobileNetV3 về độ chính xác, trong khi MobileNetV3-Small đạt tốc độ xử lý theo lô nhanh nhất ($2{,}98\text{ ms/ảnh}$).
+
+\section{Phát hiện vùng thực phẩm và nhãn bằng YOLO26 Small}
+\label{sec:yolo-object-detection}
+
+NutriCare sử dụng YOLO26 Small (YOLO26s) để định vị vùng thực phẩm và vùng tem thông tin trong ảnh đầu vào. Việc khoanh vùng xử lý theo các vùng quan tâm (ROI) giúp loại bỏ bớt phần hậu cảnh dư thừa trước khi đưa vào bộ phân loại thực phẩm và phân hệ đọc văn bản.
+
+\subsection{Kiến trúc mạng phát hiện đối tượng YOLO26s}
+\label{subsec:yolo-architecture}
+
+YOLO26 dự đoán đồng thời vị trí hộp giới hạn và nhãn lớp đối tượng trong một lượt suy luận \cite{redmon2016you,jocher2026yolo26}. Biến thể Small sử dụng hệ số độ sâu $0{,}50$ và hệ số độ rộng $0{,}50$. Theo cấu hình tham chiếu \cite{ultralyticsYolo26Config}, mạng YOLO26s gồm ba phần:
+
+\begin{itemize}[leftmargin=0.8cm, label=\textbullet, itemsep=2pt, topsep=2pt]
+    \item \textbf{Mạng trích xuất đặc trưng:} Các tầng tích chập giảm dần độ phân giải xen kẽ khối \texttt{C3k2}, kết hợp khối \texttt{SPPF} tổng hợp ngữ cảnh đa tỷ lệ và khối \texttt{C2PSA} bổ sung cơ chế chú ý không gian--kênh.
+    \item \textbf{Mạng hợp nhất đặc trưng:} Kết nối tăng kích thước và ghép kênh hai chiều tạo ra ba bản đồ đặc trưng P3, P4 và P5 tương ứng với bước lấy mẫu 8, 16 và 32 pixel trên ảnh đầu vào.
+    \item \textbf{Đầu phát hiện:} Khối \texttt{Detect} hồi quy tọa độ hộp giới hạn và dự đoán điểm lớp trên đồng thời ba mức P3, P4 và P5, giúp thích ứng cả với đối tượng kích thước lớn lẫn các tem nhãn nhỏ.
+\end{itemize}
+
+YOLO26 loại bỏ thành phần mất mát phân bố tiêu điểm trong hồi quy hộp và hỗ trợ cả nhánh dự đoán một-một (suy luận đầu cuối không cần bước triệt tiêu phi cực đại -- NMS) lẫn nhánh một-nhiều (có thể kết hợp NMS) \cite{jocher2026yolo26}.
+
+\subsection{Trích xuất vùng quan tâm trong NutriCare}
+\label{subsec:yolo-roi-extraction}
+
+Bộ phát hiện nhận diện hai lớp đối tượng: \texttt{food\_tray} biểu thị vùng khay thực phẩm và \texttt{price\_tag} biểu thị vùng tem nhãn có thể chứa thông tin khối lượng. Với ảnh gốc $I$, tập $n$ hộp giới hạn sau khi lọc các dự đoán dưới ngưỡng tin cậy được biểu diễn dưới dạng:
+\begin{equation}
+    \mathcal{B} = \{(B_k, c_k, s_k)\}_{k=1}^{n},
+    \qquad B_k = (x_{1k}, y_{1k}, x_{2k}, y_{2k}),
+    \label{eq:yolo-detections}
+\end{equation}
+trong đó $(x_{1k}, y_{1k})$ và $(x_{2k}, y_{2k})$ lần lượt là tọa độ góc trên--trái và dưới--phải của hộp giới hạn $B_k$ đã quy đổi về hệ tọa độ ảnh gốc, $c_k$ là nhãn lớp và $s_k$ là điểm tin cậy. Các vùng ảnh con được cắt trực tiếp từ ảnh gốc để bảo toàn độ sắc nét:
+\begin{equation}
+    I_k^{\mathrm{ROI}} = \operatorname{Crop}(I, B_k).
+    \label{eq:yolo-crop}
+\end{equation}
+
+Vùng chứa thực phẩm được chuyển sang mô hình phân loại ảnh để nhận diện tên thực phẩm, còn vùng tem nhãn được đưa qua phân hệ OCR. Khi ảnh có nhiều vùng thực phẩm hoặc nhiều nhãn, hệ thống kiểm tra quan hệ gắn kết không gian trước khi gán khối lượng nhằm tránh nhân bản sai khối lượng cả gói cho từng phần nhỏ; nếu không phát hiện được nhãn hợp lệ, thông tin dinh dưỡng vẫn có thể tra cứu theo mức tham chiếu 100~g.
+
+\subsection{Kết quả đánh giá phát hiện trên tập kiểm thử}
+\label{subsec:yolo-experiment-results}
+
+Mô hình huấn luyện mang mã \nolinkurl{nckh_food_detection-5-yolo26s-t1}, được đánh giá trên tập kiểm thử gồm 130 ảnh với 129 hộp nhãn chuẩn lớp \texttt{food\_tray} và 109 hộp nhãn chuẩn lớp \texttt{price\_tag}. Bảng~\ref{tab:yolo26s-test-metrics} trình bày kết quả tính từ ma trận nhầm lẫn tại ngưỡng tin cậy $0{,}40$.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Kết quả YOLO26s tại ngưỡng tin cậy $0{,}40$ trên tập kiểm thử}
+    \label{tab:yolo26s-test-metrics}
+    \begin{tabular}{@{}lrrrrrr@{}}
+        \toprule
+        Lớp & TP & FP & FN & Precision (\%) & Recall (\%) & F1 (\%) \\
+        \midrule
+        \texttt{food\_tray} & 126 & 16 & 3 & 88,73 & 97,67 & 92,99 \\
+        \texttt{price\_tag} & 103 & 5 & 6 & 95,37 & 94,50 & 94,93 \\
+        \midrule
+        Trung bình theo lớp & -- & -- & -- & 92,05 & 96,08 & 93,96 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Trong bảng trên, $\mathrm{TP}$, $\mathrm{FP}$ và $\mathrm{FN}$ lần lượt là số đối tượng phát hiện đúng, dự đoán dư và bỏ sót theo công thức chuẩn tại Mục~\ref{sec:eval-metrics}; tại ngưỡng $0{,}40$, không có trường hợp nhầm trực tiếp giữa hai lớp. Kết quả này phản ánh chất lượng định vị hộp giới hạn ở ngưỡng kiểm thử cụ thể, trong khi độ chính xác đọc chữ khối lượng phụ thuộc thêm vào bước OCR độc lập phía sau.
+
+\section{Nhận dạng ký tự quang học và trích xuất khối lượng bằng ML Kit}
+\label{sec:mlkit-ocr}
+
+Để quy đổi thành phần dinh dưỡng từ mức chuẩn 100~g sang lượng thực tế của khay thực phẩm, kết quả phân loại ảnh cần đi kèm khối lượng ghi trên nhãn cân điện tử. Hệ thống sử dụng ML Kit OCR để đọc văn bản từ vùng nhãn do YOLO26s cắt ra, sau đó dùng bộ quy tắc hậu xử lý tách lấy trường khối lượng.
+
+\subsection{Nguyên lý nhận dạng văn bản và đặc điểm của ML Kit}
+\label{subsec:mlkit-text-recognition}
+
+OCR chuyển đổi vùng ký tự trong ảnh thành chuỗi văn bản số hóa qua ba bước chức năng: định vị vùng chữ, nhận dạng chuỗi ký tự và tổ chức cấu trúc không gian. Hệ thống dùng trực tiếp bộ thư viện nhận dạng chữ Latin của ML Kit trên thiết bị di động mà không huấn luyện lại mô hình bên trong \cite{googleMlKitOverview}. Theo chuẩn đầu ra Text Recognition v2 \cite{googleMlKitTextV2}, kết quả trả về phân cấp theo khối văn bản, dòng, từ và ký tự kèm tọa độ khung bao, tạo cơ sở đối chiếu cặp giá trị số với đơn vị đo và từ khóa lân cận.
+
+\subsection{Định vị vùng nhãn và phân tích trường khối lượng}
+\label{subsec:ocr-label-roi}
+
+Vùng mang nhãn \texttt{price\_tag} với hộp giới hạn $B_k^{\mathrm{tag}}$ được cắt trực tiếp từ ảnh gốc độ phân giải đầy đủ theo Phương trình~\eqref{eq:yolo-crop} nhằm giữ rõ nét các ký tự nhỏ (khuyến nghị chiều cao ký tự tối thiểu khoảng $16\times 16$ pixel để nhận dạng ổn định \cite{googleMlKitTextAndroid}).
+
+Do trên nhãn bán lẻ xuất hiện nhiều chuỗi số khác nhau (đơn giá, thành tiền, ngày đóng gói, hạn sử dụng, mã vạch), bước hậu xử lý văn bản thực hiện tuần tự ba thao tác:
+\begin{enumerate}[leftmargin=0.8cm, label=\arabic*), itemsep=2pt, topsep=2pt]
+    \item Chuẩn hóa khoảng trắng và cách viết đơn vị đo trong khi vẫn lưu chuỗi gốc để kiểm tra lại.
+    \item Ghép cặp số với đơn vị khối lượng hợp lệ (\texttt{g}, \texttt{kg}) cùng từ khóa nhận diện như ``khối lượng tịnh'', ``NET WT'' hoặc ``NET WEIGHT''.
+    \item Loại bỏ các ứng viên nằm trên dòng chứa từ khóa giá tiền, ngày tháng hoặc đơn giá tham chiếu (ví dụ giá trên 100~g), giữ ở trạng thái chờ người dùng xác nhận nếu còn nhập nhằng.
+\end{enumerate}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Minh họa phân biệt khối lượng với các trường thông tin khác trên nhãn}
+    \label{tab:ocr-mass-normalization}
+    \begingroup
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.5cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.2cm}@{}}
+        \toprule
+        \textbf{Văn bản minh họa} & \textbf{Ngữ cảnh diễn giải} & \textbf{Xử lý đề xuất} \\
+        \midrule
+        \texttt{NET WT: 0,350 kg} & Giá trị gắn với trường khối lượng tịnh. & Quy đổi thành $350$~g. \\
+        \texttt{KL tinh: 350 g} & Khối lượng có đơn vị gam. & Ghi nhận $350$~g. \\
+        \texttt{Don gia: 25.000 d/100g} & Số liệu thuộc trường đơn giá theo định lượng. & Không lấy $100$~g làm khối lượng sản phẩm. \\
+        \texttt{KLT: 350} & Thiếu đơn vị khối lượng đi kèm. & Yêu cầu xác nhận. \\
+        \bottomrule
+    \end{tabularx}
+    \endgroup
+\end{table}
+
+\subsection{Chuẩn hóa khối lượng và nguyên tắc đánh giá phân hệ}
+\label{subsec:ocr-mass-nutrition}
+
+Với thực phẩm $i$ trích xuất được cặp giá trị số $v_i > 0$ và đơn vị $u_i \in \{\mathrm{g}, \mathrm{kg}\}$, khối lượng tịnh trên nhãn được chuẩn hóa về đơn vị gam trước khi đưa vào Phương trình~\eqref{eq:consumed-mass}:
+\begin{equation}
+    m_i^{\mathrm{label}} =
+    \begin{cases}
+        v_i, & \text{nếu } u_i = \mathrm{g},\\
+        1000 \cdot v_i, & \text{nếu } u_i = \mathrm{kg}.
+    \end{cases}
+    \label{eq:ocr-mass-unit-conversion}
+\end{equation}
+Các đơn vị thể tích hoặc khối lượng thiếu đơn vị không được tự ý quy đổi thành khối lượng tịnh; nếu không đọc được nhãn hợp lệ, ứng dụng cho phép người dùng nhập tay hoặc xem trước bảng tham chiếu theo mức 100~g. Khi đánh giá thực nghiệm phân hệ OCR, chất lượng nhận dạng ký tự được đo bằng tỷ lệ lỗi ký tự (CER) — tỷ lệ tổng số phép thay thế, xóa và chèn trên tổng số ký tự chuẩn — kết hợp cùng tỷ lệ trích xuất đúng cặp giá trị--đơn vị khối lượng trên các nhãn cắt từ hộp chuẩn và hộp dự đoán của YOLO26s.
+
+\section{Các chỉ số đánh giá hiệu năng mô hình}
+\label{sec:eval-metrics}
+
+Để định lượng khách quan chất lượng các mô hình thị giác máy tính trong Bảng~\ref{tab:model-comparison-7} và Bảng~\ref{tab:yolo26s-test-metrics}, nghiên cứu sử dụng các thước đo chuẩn sau:
+
+\begin{itemize}[leftmargin=0.8cm, label=\textbullet, itemsep=3pt, topsep=2pt]
+    \item \textbf{Độ chính xác tổng thể ($\mathrm{Accuracy}$):} Tỷ lệ giữa số mẫu dự đoán đúng lớp thực tế $N_{\mathrm{correct}}$ trên tổng số mẫu kiểm thử $N_{\mathrm{total}}$:
+    \begin{equation}
+        \mathrm{Accuracy} = \frac{N_{\mathrm{correct}}}{N_{\mathrm{total}}} \times 100\%.
+        \label{eq:metric-accuracy}
+    \end{equation}
+
+    \item \textbf{Độ chính xác dương tính ($\mathrm{Precision}$), Độ phủ ($\mathrm{Recall}$) và điểm $\mathrm{F1}$:} Đối với từng lớp $c$, gọi $\mathrm{TP}_c$, $\mathrm{FP}_c$ và $\mathrm{FN}_c$ lần lượt là số trường hợp dự đoán đúng dương tính, dương tính giả và âm tính giả. Các chỉ số thành phần được xác định bởi:
+    \begin{equation}
+        \mathrm{Precision}_c = \frac{\mathrm{TP}_c}{\mathrm{TP}_c + \mathrm{FP}_c}, \qquad
+        \mathrm{Recall}_c = \frac{\mathrm{TP}_c}{\mathrm{TP}_c + \mathrm{FN}_c}, \qquad
+        \mathrm{F1}_c = \frac{2 \cdot \mathrm{Precision}_c \cdot \mathrm{Recall}_c}{\mathrm{Precision}_c + \mathrm{Recall}_c}.
+        \label{eq:metric-prf1}
+    \end{equation}
+
+    \item \textbf{Điểm $\mathrm{Macro\text{-}F1}$:} Trung bình cộng không trọng số của điểm $\mathrm{F1}_c$ trên toàn bộ $K$ lớp ($K = 50$ đối với phân loại thực phẩm), phản ánh mức độ đồng đều hiệu năng giữa các lớp kể cả lớp có ít ảnh kiểm thử:
+    \begin{equation}
+        \mathrm{Macro\text{-}F1} = \frac{1}{K} \sum_{c=1}^{K} \mathrm{F1}_c.
+        \label{eq:metric-macro-f1}
+    \end{equation}
+
+    \item \textbf{Chỉ số giao trên hợp ($\mathrm{IoU}$):} Thước đo mức độ trùng khớp không gian giữa hộp giới hạn dự đoán $B_{\mathrm{pred}}$ và hộp nhãn chuẩn $B_{\mathrm{gt}}$ trong bài toán phát hiện đối tượng:
+    \begin{equation}
+        \mathrm{IoU}(B_{\mathrm{pred}}, B_{\mathrm{gt}}) = \frac{\operatorname{Area}(B_{\mathrm{pred}} \cap B_{\mathrm{gt}})}{\operatorname{Area}(B_{\mathrm{pred}} \cup B_{\mathrm{gt}})}.
+        \label{eq:metric-iou}
+    \end{equation}
+    Một hộp dự đoán được ghi nhận là phát hiện đúng ($\mathrm{TP}$) khi có cùng nhãn lớp với hộp chuẩn và giá trị $\mathrm{IoU}$ đạt từ ngưỡng đánh giá trở lên; giá trị trung bình độ chính xác theo các ngưỡng trùng khớp ($\mathrm{mAP}$) được tổng hợp dựa trên đường cong $\mathrm{Precision}$--$\mathrm{Recall}$.
+\end{itemize}

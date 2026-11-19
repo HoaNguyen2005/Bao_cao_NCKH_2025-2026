@@ -31,6 +31,12 @@
 \renewcommand{\listfigurename}{DANH MỤC HÌNH ẢNH}
 
 \usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\DeclareLanguageMapping{vietnamese}{english}
+\DefineBibliographyStrings{vietnamese}{
+    and={và}, andothers={và cộng sự}, in={Trong},
+    pages={tr.}, urlseen={truy cập ngày}, version={phiên bản}
+}
+\AtBeginBibliography{\sloppy}
 \addbibresource{references.bib}
 
 % ================= BẮT ĐẦU TÀI LIỆU =================
