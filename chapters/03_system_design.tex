@@ -146,6 +146,20 @@ Với tài khoản đã đăng nhập, mọi thay đổi trên hồ sơ, tỷ l�
 \section{Thiết kế giao diện ứng dụng di động}
 \label{sec:ui-design}
 
+{
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.90}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{4}
+\setcounter{totalnumber}{6}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+
 Giao diện NutriCare sử dụng tông xanh lá chủ đạo kết hợp hệ thống màu cảnh báo y khoa (xanh an toàn, cam lưu ý, đỏ nguy hiểm) và xoay quanh thanh điều hướng 4 mục cố định ở đáy màn hình. Hình~\ref{fig:ui_auth_scan} minh họa màn hình khởi đầu cho phép lựa chọn đăng nhập hoặc dùng ở chế độ Khách cùng màn hình quét ảnh thực phẩm chính.
 
 \begin{figure}[htbp]
@@ -153,127 +167,119 @@ Giao diện NutriCare sử dụng tông xanh lá chủ đạo kết hợp hệ t
     {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
     \begin{minipage}[b]{0.46\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_1_dang_nhap.jpg}}
-        \par\vspace{4pt}{\small (a) Màn hình Đăng nhập}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_1_dang_nhap.jpg}}
+        \par\vspace{3pt}{\small (a) Màn hình Đăng nhập}
     \end{minipage}
     \hfill
     \begin{minipage}[b]{0.46\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_2_man_hinh_quet.jpg}}
-        \par\vspace{4pt}{\small (b) Màn hình Quét và Tra cứu}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_2_man_hinh_quet.jpg}}
+        \par\vspace{3pt}{\small (b) Màn hình Quét và Tra cứu}
     \end{minipage}}
     \caption{Giao diện Màn hình Đăng nhập và Màn hình Quét thực phẩm}
     \label{fig:ui_auth_scan}
 \end{figure}
 
-Sau khi phân tích ảnh, màn hình kết quả quét (Hình~\ref{fig:ui_found}) gom toàn bộ thao tác vào một luồng trực quan: xem lại ảnh món và tem cân đã cắt (chạm để phóng to), đổi bộ phận cắt hoặc 4 loại trứng, theo dõi số phần chuẩn, chỉnh khối lượng nhãn và chọn tỷ lệ tiêu thụ thực tế $\gamma$, thêm món vào thực đơn hôm nay và xem tư vấn từ chuyên gia AI. Từ đây, người dùng có thể mở bảng đối chiếu chi tiết toàn bộ đa lượng và vi chất theo hai cột $100\text{ g}$ và thực ăn $m_{\text{consumed}}$ (Hình~\ref{fig:ui_result_detail}).
+Sau khi phân tích ảnh, màn hình kết quả quét và bảng chi tiết dinh dưỡng (Hình~\ref{fig:ui_found_result}) gom toàn bộ thao tác vào một luồng trực quan: xem lại ảnh món và tem cân đã cắt (chạm để phóng to), đổi bộ phận cắt hoặc 4 loại trứng, theo dõi số phần chuẩn, chỉnh khối lượng nhãn và chọn tỷ lệ tiêu thụ thực tế $\gamma$, thêm món vào thực đơn hôm nay, xem tư vấn AI và mở bảng đối chiếu đầy đủ đa lượng, vi chất theo hai cột $100\text{ g}$ và thực ăn $m_{\text{consumed}}$.
+
+Ở luồng theo dõi tiến trình ngày (Hình~\ref{fig:ui_progress_guest}), người dùng đã đăng nhập theo dõi lượng calo, 4 chất đa lượng, 6 ngưỡng vi chất y khoa và khối quy đổi phần ăn thiếu hụt (\textit{đạm/tinh bột/béo}); ngược lại ở chế độ Khách, thanh điều hướng hiển thị biểu tượng ổ khóa và mời đăng nhập Google tại chỗ.
+
+Tương tự, màn hình Hồ sơ cá nhân (Hình~\ref{fig:ui_profile_guest}) tổng hợp tài khoản Google, chỉ số cơ thể, công tắc kiểm soát béo phì và giới hạn y khoa khi đã đăng nhập, hoặc hiển thị thẻ khóa khi ở chế độ Khách. Cuối cùng, Hình~\ref{fig:ui_history_edit} minh họa danh sách Lịch sử tra cứu (có nhãn phân biệt món đã đưa vào thực đơn và hỗ trợ nhấn giữ xóa nhiều mục) cùng biểu mẫu Thiết lập hồ sơ cá nhân.
 
 \begin{figure}[htbp]
     \centering
     {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_3a_ket_qua_tren.jpg}}
-        \par\vspace{4pt}{\small (a) Phần trên: ảnh cắt, phần thịt và tỷ lệ ăn}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_3a_ket_qua_tren.jpg}}
+        \par\vspace{3pt}{\small (a) Kết quả (trên)}
     \end{minipage}
     \hfill
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_3b_ket_qua_duoi.jpg}}
-        \par\vspace{4pt}{\small (b) Phần dưới: đa lượng và tư vấn AI}
-    \end{minipage}}
-    \caption{Giao diện Màn hình Kết quả Quét trên NutriCare}
-    \label{fig:ui_found}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \fcolorbox{black!15}{white}{\includegraphics[width=0.42\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_4_chi_tiet_dinh_duong.jpg}}}
-    \caption{Bảng Chi tiết Dinh dưỡng đối chiếu mức chuẩn $100\text{ g}$ và khẩu phần thực ăn}
-    \label{fig:ui_result_detail}
-\end{figure}
-
-Nhóm màn hình theo dõi dài hạn gồm Tiến trình dinh dưỡng ngày (Hình~\ref{fig:ui_progress}) hiển thị lượng calo, các thanh tiến trình đa lượng và 6 ngưỡng vi chất y khoa kèm khối quy đổi phần ăn thiếu hụt (\textit{đạm/tinh bột/béo}), cùng màn hình Lịch sử tra cứu (Hình~\ref{fig:ui_history}) lưu toàn bộ các lần quét có gắn nhãn nhận diện món đã nạp vào thực đơn và hỗ trợ chọn nhiều mục để xóa.
-
-\begin{figure}[htbp]
-    \centering
-    {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \begin{minipage}[b]{0.46\textwidth}
-        \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_5a_tien_trinh_tren.jpg}}
-        \par\vspace{4pt}{\small (a) Phần trên: calo và các chất đa lượng}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_3b_ket_qua_duoi.jpg}}
+        \par\vspace{3pt}{\small (b) Kết quả (dưới)}
     \end{minipage}
     \hfill
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_5b_tien_trinh_duoi.jpg}}
-        \par\vspace{4pt}{\small (b) Phần dưới: ngưỡng y khoa và quy đổi phần ăn}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_4_chi_tiet_dinh_duong.jpg}}
+        \par\vspace{3pt}{\small (c) Chi tiết dinh dưỡng}
     \end{minipage}}
-    \caption{Giao diện Màn hình Tiến trình Dinh dưỡng Ngày}
-    \label{fig:ui_progress}
+    \caption{Giao diện Màn hình Kết quả Quét và Bảng Chi tiết Dinh dưỡng thực tế}
+    \label{fig:ui_found_result}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \fcolorbox{black!15}{white}{\includegraphics[width=0.42\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_6_lich_su_tra_cuu.jpg}}}
-    \caption{Giao diện Màn hình Lịch sử Tra cứu thực phẩm}
-    \label{fig:ui_history}
-\end{figure}
-
-Màn hình Hồ sơ cá nhân (Hình~\ref{fig:ui_profile}) trình bày tài khoản Google, chỉ số cơ thể kèm các khung giải thích công thức xổ xuống, công tắc kiểm soát béo phì và danh mục giới hạn y khoa; biểu tượng chỉnh sửa đưa tới màn hình Thiết lập hồ sơ (Hình~\ref{fig:ui_edit_profile}) hỗ trợ cảnh báo xung đột mục tiêu theo $\mathrm{BMI}$ và chọn dị ứng/bệnh lý. Ở chế độ Khách, các màn hình yêu cầu tài khoản hiển thị thông báo khóa kèm nút đăng nhập Google ngay tại chỗ để hợp nhất dữ liệu tức thì (Hình~\ref{fig:ui_guest_locked}).
-
-\begin{figure}[htbp]
-    \centering
-    {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_7a_ho_so_tren.jpg}}
-        \par\vspace{4pt}{\small (a) Phần trên: tài khoản, thể trạng và BMI}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_5a_tien_trinh_tren.jpg}}
+        \par\vspace{3pt}{\small (a) Tiến trình (trên)}
     \end{minipage}
     \hfill
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_7b_ho_so_duoi.jpg}}
-        \par\vspace{4pt}{\small (b) Phần dưới: dị ứng, bệnh lý và trần an toàn}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_5b_tien_trinh_duoi.jpg}}
+        \par\vspace{3pt}{\small (b) Tiến trình (dưới)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.32\textwidth}
+        \centering
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_9a_khach_tien_trinh.jpg}}
+        \par\vspace{3pt}{\small (c) Trạng thái khóa (Khách)}
     \end{minipage}}
-    \caption{Giao diện Màn hình Hồ sơ Cá nhân}
-    \label{fig:ui_profile}
+    \caption{Giao diện Màn hình Tiến trình Dinh dưỡng Ngày và trạng thái khóa chế độ Khách}
+    \label{fig:ui_progress_guest}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_8a_thiet_lap_tren.jpg}}
-        \par\vspace{4pt}{\small (a) Phần trên: thông số cơ thể và mục tiêu}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_7a_ho_so_tren.jpg}}
+        \par\vspace{3pt}{\small (a) Hồ sơ (trên)}
     \end{minipage}
     \hfill
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_8b_thiet_lap_duoi.jpg}}
-        \par\vspace{4pt}{\small (b) Phần dưới: chọn dị ứng và tiền sử bệnh lý}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_7b_ho_so_duoi.jpg}}
+        \par\vspace{3pt}{\small (b) Hồ sơ (dưới)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.32\textwidth}
+        \centering
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_9b_khach_ho_so.jpg}}
+        \par\vspace{3pt}{\small (c) Trạng thái khóa (Khách)}
     \end{minipage}}
-    \caption{Giao diện Màn hình Thiết lập Hồ sơ Sức khỏe}
-    \label{fig:ui_edit_profile}
+    \caption{Giao diện Màn hình Hồ sơ Cá nhân và trạng thái khóa chế độ Khách}
+    \label{fig:ui_profile_guest}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.4pt}%
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_9a_khach_tien_trinh.jpg}}
-        \par\vspace{4pt}{\small (a) Khóa tính năng trên Tab Tiến trình}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_6_lich_su_tra_cuu.jpg}}
+        \par\vspace{3pt}{\small (a) Lịch sử tra cứu}
     \end{minipage}
     \hfill
-    \begin{minipage}[b]{0.46\textwidth}
+    \begin{minipage}[b]{0.32\textwidth}
         \centering
-        \fcolorbox{black!15}{white}{\includegraphics[width=0.88\textwidth,height=0.46\textheight,keepaspectratio]{hinh3_9b_khach_ho_so.jpg}}
-        \par\vspace{4pt}{\small (b) Khóa tính năng trên Tab Hồ sơ}
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_8a_thiet_lap_tren.jpg}}
+        \par\vspace{3pt}{\small (b) Thiết lập hồ sơ (trên)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.32\textwidth}
+        \centering
+        \fcolorbox{black!15}{white}{\includegraphics[width=0.92\textwidth,height=0.38\textheight,keepaspectratio]{hinh3_8b_thiet_lap_duoi.jpg}}
+        \par\vspace{3pt}{\small (c) Thiết lập hồ sơ (dưới)}
     \end{minipage}}
-    \caption{Trạng thái khóa chức năng và nút đăng nhập tại chỗ ở chế độ Khách}
-    \label{fig:ui_guest_locked}
+    \caption{Giao diện Màn hình Lịch sử Tra cứu và Thiết lập Hồ sơ Sức khỏe}
+    \label{fig:ui_history_edit}
 \end{figure}
+\clearpage
+}
